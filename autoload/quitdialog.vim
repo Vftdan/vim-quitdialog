@@ -32,21 +32,33 @@ function! quitdialog#quit_handler()
 	endif
 endfunction
 
+let s:buf = -1
 function! quitdialog#prevent_quit()
 	let l:lz = &lazyredraw
+	let l:hid = &hidden
 	let l:awa = &autowriteall
-	set lazyredraw noautowriteall
+	set lazyredraw hidden noautowriteall
 	tabnew
 	set modified
+	if s:buf == -1 || !bufexists(s:buf)
+		let s:buf = bufadd('')
+	endif
+	call bufload(s:buf)
+	call setbufvar(s:buf, '&modified', 1)
 	echo ''
 	let l:win = win_getid()
 	function! s:cleanup(...) closure
+		call setbufvar(s:buf, '&modified', 0)
+		" It seems that there is no way to completely delete it from
+		" buffer list.
+		exe s:buf . 'bdelete'
 		if win_gotoid(l:win)
 			set nomodified
 			q
 			redraw
 		endif
 		let &autowriteall = l:awa
+		let &hidden = l:hid
 		let &lazyredraw = l:lz
 	endfunction
 	call timer_start(0, funcref('s:cleanup'))
