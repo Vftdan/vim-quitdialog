@@ -34,7 +34,8 @@ endfunction
 
 function! quitdialog#prevent_quit()
 	let l:lz = &lazyredraw
-	set lazyredraw
+	let l:awa = &autowriteall
+	set lazyredraw noautowriteall
 	tabnew
 	set modified
 	echo ''
@@ -45,6 +46,7 @@ function! quitdialog#prevent_quit()
 			q
 			redraw
 		endif
+		let &autowriteall = l:awa
 		let &lazyredraw = l:lz
 	endfunction
 	call timer_start(0, funcref('s:cleanup'))
